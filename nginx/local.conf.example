@@ -1,0 +1,16 @@
+# Placeholder only - plain HTTP, no TLS. For local testing behind a reverse
+# proxy before a production domain/cert is chosen. Swapping in the real
+# domain, server_name, and cert paths later is a separate follow-up task
+# - not needed for local app development.
+
+server {
+    listen 8080;
+    server_name localhost;
+
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}

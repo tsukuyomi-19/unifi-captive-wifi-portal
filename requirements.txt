@@ -1,0 +1,17 @@
+Flask==3.1.0
+google-auth==2.36.0
+google-auth-oauthlib==1.2.1
+requests==2.32.3
+python-dotenv==1.0.1
+gunicorn==23.0.0
+
+# IDENTITY_BACKEND=ldap. Needs build-essential + libsasl2-dev libldap2-dev
+# libssl-dev on the host before pip will build it.
+python-ldap==3.4.4
+
+# IDENTITY_BACKEND=directory. Only imported when that backend is selected, so
+# an ldap-only install can drop this line.
+google-api-python-client==2.149.0
+
+pytest==8.3.4
+pytest-mock==3.14.0

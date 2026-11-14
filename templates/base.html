@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Campus WiFi{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {# Inline so it works with no internet access, which is the whole point of a
+     pre-auth portal page. Declaring any icon also stops the browser probing
+     /favicon.ico, which was 404ing on every page load. #}
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231379b7'/><text x='16' y='24' font-family='sans-serif' font-size='21' font-weight='bold' text-anchor='middle' fill='white'>H</text></svg>">
+</head>
+<body>
+  <main class="card">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

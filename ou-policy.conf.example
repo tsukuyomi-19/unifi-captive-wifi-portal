@@ -1,0 +1,95 @@
+# Campus WiFi portal - OU and SSID policy.
+#
+# Copy to the path given by POLICY_FILE (default: ./instance/ou-policy.conf)
+# and verify with:  python scripts/preflight.py --email someone@example.org
+#
+# Syntax: "key -> value", one per line, "#" starts a comment.
+# "->" is the separator (not "=") because every LDAP RDN contains "=".
+#
+# Patterns are matched as case-insensitive SUBSTRINGS against the DN
+# (IDENTITY_BACKEND=ldap) or orgUnitPath (IDENTITY_BACKEND=directory).
+# FIRST MATCH IN FILE ORDER WINS, so deny rules must come first.
+
+
+[roles]
+# ---------------------------------------------------------------------------
+# Deny rules FIRST. These map to roles that appear in no [ssids] entry below,
+# so they are refused. Listing them explicitly rather than relying on "no rule
+# matched" means a future OU rename can't silently promote a disabled account.
+# ---------------------------------------------------------------------------
+
+# Disabled accounts, including former students filed by graduation year, e.g.
+#   uid=x,ou=2025-2026,ou=_DISABLE ME,ou=Users,dc=example,dc=org
+# Note these do NOT contain "ou=Students", so they must be caught by name.
+ou=_DISABLE ME -> disabled
+
+# Service, shared and test accounts - not people who should get WiFi.
+#   ou=Non-User & Group Accounts,ou=Non-Standard Accounts,ou=Users,...
+#   ou=2FA Accounts,ou=Non-Standard Accounts,ou=Users,...
+ou=Non-Standard Accounts -> disabled
+ou=_TEST GROUP -> disabled
+ou=Admin_UM -> disabled
+
+# ---------------------------------------------------------------------------
+# Allow rules. Verify against your own directory by enumerating the
+# accounts under your base DN.
+# ---------------------------------------------------------------------------
+
+# Students: uid=x,ou=<grad year>,ou=Students,ou=Users,dc=...
+# (a couple sit directly in ou=Students with no year)
+ou=Students -> student
+
+# Every employee sits somewhere under "ou=Staff & Teachers", e.g.:
+#   ou=High School Teachers,ou=Teachers,ou=Staff & Teachers,...
+#   ou=Elementary Teachers,ou=Teachers,ou=Staff & Teachers,...
+#   ou=Kindergarten Teachers,ou=Teachers,ou=Staff & Teachers,...
+#   ou=High School Staff,ou=Staff,ou=Staff & Teachers,...
+#   ou=Elementary Staff,ou=Staff,ou=Staff & Teachers,...
+#   ou=Substitutes Staff,ou=Staff,ou=Staff & Teachers,...
+#   ou=Kindergarten Staff,ou=Staff,ou=Staff & Teachers,...
+#   ou=Transportation Staff,ou=Staff,ou=Staff & Teachers,...
+#   ou=Music Staff,ou=Staff,ou=Staff & Teachers,...
+#   ou=Subs\, Aids & Part Time Employees,ou=Staff & Teachers,...
+#   ou=TAs & Summer Work,ou=Subs\, Aids...,ou=Staff & Teachers,...
+#   ou=Coaches,ou=Staff & Teachers,...                             (8+1)
+#
+# Matching the ROOT of the tree covers all of them, including the Teachers
+# subtree, which contains no "ou=Staff" component of its own. An earlier
+# version of this file used the bare pattern "ou=Staff", which only caught
+# teachers by accident - "ou=Staff & Teachers" happens to contain the
+# substring "ou=Staff". Renaming the OU would have silently locked out every
+# teacher. Match the real name instead.
+ou=Staff & Teachers -> staff
+
+# Google Admin Directory equivalents (IDENTITY_BACKEND=directory). The same
+# OU tree, expressed as an orgUnitPath.
+#
+# NOTE: make sure these paths match your real OU tree - a stale pattern
+# silently fails to classify anyone under it.
+/Students -> student
+/Staff & Teachers -> staff
+
+
+[ssids]
+# Exact, case-sensitive SSID names as configured on the controller, mapped to
+# the roles allowed to authenticate from them. An SSID that is NOT listed here
+# denies everyone (fail closed), so adding one is always a deliberate edit.
+# The "disabled" role above appears nowhere here, which is what denies it.
+#
+# Example controller setup:
+#   "Campus Student"  security=open     is_guest=true   network=Students - BYOD
+#   "Campus Staff"    security=wpapsk   is_guest=false  networks=Staff
+#
+# "Campus Student" is already an open guest-portal SSID, so it works as-is.
+Campus Student -> student
+
+# "Campus Staff" is WPA2-PSK today and is NOT a guest-portal SSID. Listing it here
+# does nothing on its own; the portal only ever sees an SSID if the controller
+# redirects that SSID to the external portal. Converting it would mean making
+# staff WiFi OPEN (unencrypted) - weigh that tradeoff first.
+# Default: students only. Left commented out deliberately.
+# Campus Staff -> staff
+
+# Allowing staff onto the student SSID too is a common convenience (a
+# teacher's phone on the student network). Uncomment to permit it.
+# Campus Student -> student, staff

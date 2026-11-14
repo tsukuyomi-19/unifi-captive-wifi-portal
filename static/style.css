@@ -1,0 +1,60 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f4f5f7;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 2.5rem;
+  max-width: 420px;
+  text-align: center;
+}
+
+.error {
+  color: #b3261e;
+  font-weight: 600;
+}
+
+.button {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #1a73e8;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* Guest access codes. The code field is deliberately large and monospaced:
+   guests read a 10-digit string off a paper slip, often on a phone. */
+input.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 1.6rem;
+  letter-spacing: 0.12em;
+  text-align: center;
+  width: 100%;
+  padding: 0.6rem;
+  margin: 0.5rem 0 1rem;
+  box-sizing: border-box;
+}
+.code-out {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 2rem;
+  letter-spacing: 0.1em;
+  margin: 0.3rem 0;
+}
+.code-cell { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.muted { color: #555; font-size: 0.9rem; }
+.created { border: 2px solid #1379b7; padding: 0.8rem; margin: 1rem 0; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { text-align: left; padding: 0.35rem 0.4rem; border-bottom: 1px solid #ddd; }
+label { display: block; margin: 0.6rem 0; }
+select, input[type=text] { width: 100%; padding: 0.4rem; box-sizing: border-box; }

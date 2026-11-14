@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Connected{% endblock %}
+{% block content %}
+  <h1>You're connected!</h1>
+  <p>Your device is authorized for the next 30 days.</p>
+  {% if next_url %}
+    <p><a class="button" href="{{ next_url }}">Continue</a></p>
+  {% else %}
+    <p>You can close this window now.</p>
+  {% endif %}
+{% endblock %}

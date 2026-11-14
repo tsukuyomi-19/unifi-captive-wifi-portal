@@ -1,0 +1,9 @@
+venv/
+.venv/
+instance/
+.env
+.remote.env
+__pycache__/
+*.pyc
+.pytest_cache/
+certs/

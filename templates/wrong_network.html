@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Wrong Network{% endblock %}
+{% block content %}
+  <h1>Wrong network</h1>
+  {% if network %}
+    <p>Please connect to <strong>{{ network }}</strong> instead.</p>
+  {% else %}
+    <p>Please connect to the correct WiFi network for your account type.</p>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Issue a WiFi code{% endblock %}
+{% block content %}
+  <h1>Issue a WiFi code</h1>
+  <p class="muted">Signed in as {{ email }} &middot;
+    <a href="{{ url_for('vouchers.staff_logout') }}">sign out</a></p>
+
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+  {% if created %}
+    <div class="created">
+      <p>New {{ created.class }} code:</p>
+      {% for c in created.codes %}<p class="code-out">{{ c }}</p>{% endfor %}
+      <p class="muted">Write this down &mdash; it is shown once here, but you can
+        always look it up again in the list below.</p>
+    </div>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('vouchers.staff_create') }}">
+    <label>Type
+      <select name="class">
+        <option value="guest">Guest &mdash; visiting family or tour, 1 day</option>
+        <option value="filter">Filtered device &mdash; student, until 30 June</option>
+      </select>
+    </label>
+    <label>Who is it for? (recorded for your records)
+      <input type="text" name="label" maxlength="60" placeholder="Smith family tour">
+    </label>
+    <button class="button" type="submit">Create code</button>
+  </form>
+
+  <h2>Existing codes</h2>
+  {% if vouchers %}
+    <table>
+      <tr><th>Code</th><th>Type</th><th>For</th><th>Devices</th><th>Status</th></tr>
+      {% for v in vouchers %}
+        <tr>
+          <td class="code-cell">{{ v.code }}</td>
+          <td>{{ v._class }}</td>
+          <td>{{ v.note }}</td>
+          <td>{{ v._devices }}</td>
+          <td>{% if v._used %}in use{% else %}not used yet{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </table>
+    <p class="muted">A code&rsquo;s clock starts when the first device uses it, not
+      when you create it.</p>
+  {% else %}
+    <p class="muted">No codes yet.</p>
+  {% endif %}
+{% endblock %}

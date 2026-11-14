@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Connect to Campus WiFi{% endblock %}
+{% block content %}
+  <h1>Campus WiFi</h1>
+  {% if not known_ssid %}
+    {# The controller redirected an SSID that isn't in the policy file. Sign-in
+       would fail at /callback with a confusing "wrong network" page, so say so
+       up front instead of sending the user through OAuth for nothing. #}
+    <p class="error">This network isn&rsquo;t set up for Google sign-in yet. Please contact IT.</p>
+  {% else %}
+    <p>Sign in with your school Google account to connect.</p>
+    <a class="button" href="{{ url_for('portal.login', mac=mac, ip=ip, ssid=ssid, url=next_url) }}">
+      Sign in with Google
+    </a>
+  {% endif %}
+  {% if vouchers_enabled %}
+    {# Second path, deliberately offered even when the SSID is unknown: a code is
+       validated locally, so it is the one route that still works for a device
+       whose content filter blocks everything before sign-in. #}
+    <p class="muted">Visiting, or your device won&rsquo;t let you sign in?
+      <a href="{{ url_for('vouchers.guest_form', mac=mac, ssid=ssid, url=next_url) }}">Use an access code</a>
+    </p>
+  {% endif %}
+{% endblock %}

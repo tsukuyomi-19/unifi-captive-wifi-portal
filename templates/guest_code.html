@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Guest access code{% endblock %}
+{% block content %}
+  <h1>Enter your access code</h1>
+  {% if error %}
+    <p class="error">{{ error }}</p>
+  {% endif %}
+  <p>Type the code from the front office. Dashes and spaces don&rsquo;t matter.</p>
+  <form method="post" action="{{ url_for('vouchers.guest_redeem') }}">
+    {# An opaque token, not the MAC. The MAC, SSID and original destination are
+       held server-side against this token, so editing the form cannot authorize
+       a different device - the same protection /login gives the OAuth flow. #}
+    <input type="hidden" name="token" value="{{ token }}">
+    <input class="code" type="text" name="code" inputmode="numeric"
+           autocomplete="off" autocapitalize="off" spellcheck="false"
+           placeholder="00000-00000" required autofocus>
+    <button class="button" type="submit">Connect</button>
+  </form>
+  <p class="muted">
+    Don&rsquo;t have a code? Ask at the front office.
+    Students should <a href="{{ url_for('portal.landing') }}">sign in with Google</a>
+    instead.
+  </p>
+{% endblock %}

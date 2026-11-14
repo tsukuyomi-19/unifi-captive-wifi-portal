@@ -1,0 +1,76 @@
+# Production nginx site for the Campus WiFi captive portal.
+#
+#   sudo cp wifi-portal.conf.example /etc/nginx/sites-available/wifi-portal
+#   sudo ln -s /etc/nginx/sites-available/wifi-portal /etc/nginx/sites-enabled/
+#   sudo nginx -t && sudo systemctl reload nginx
+#
+# Requires TRUST_PROXY_HOPS=1 in .env. Without it the app sees http:// on every
+# request and the OAuth token exchange fails against the https:// redirect URI.
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name wifi.example.org;
+
+    # Kept only so certbot's HTTP-01 fallback and plain-http captive-portal
+    # probes have something to hit. The certificate itself is issued via DNS-01
+    # (no inbound port needs to be reachable from the internet).
+    location /.well-known/acme-challenge/ {
+        root /var/www/html;
+    }
+
+    # Captive-portal detection probes must NOT be redirected to https, or some
+    # OS captive-portal detectors decide the network is fine and never open the
+    # sign-in sheet.
+    location = /generate_204 { return 302 https://$host/; }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name wifi.example.org;
+
+    ssl_certificate     /etc/letsencrypt/live/wifi.example.org/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/wifi.example.org/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache   shared:SSL:10m;
+
+    # No HSTS. A captive portal is reached before the user has working DNS or
+    # internet; pinning https for the whole hostname can lock a device out of
+    # the sign-in page if the certificate ever lapses again.
+
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options DENY always;
+    add_header Referrer-Policy no-referrer always;
+
+    access_log /var/log/nginx/wifi-portal.access.log;
+    error_log  /var/log/nginx/wifi-portal.error.log;
+
+    client_max_body_size 1m;
+
+    # No /static/ alias on purpose. Serving it from nginx needs www-data to
+    # traverse /home/it_admin, which is drwxr-x--- - it returned 403 in
+    # practice. The alternatives are loosening permissions on a home directory
+    # or copying assets to /var/www on every deploy; both add a failure mode for
+    # a single small stylesheet. Flask serves /static/ itself as it_admin via
+    # the proxy below, so this is one less thing to break.
+    #
+    # A broken stylesheet is not cosmetic here: an unstyled captive portal reads
+    # to users as "the WiFi login is broken", and it fails silently.
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        # The one that matters: without it the app builds http:// callback URLs.
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30s;
+    }
+}
